@@ -12,6 +12,8 @@
 /.next/
 /out/
 .env
+package-lock.json
+yarn-lock.json
 # production
 /build
 

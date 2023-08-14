@@ -124,6 +124,7 @@ export async function POST(req: Request) {
     llm: model,
     prompt: chainPrompt,
   });
+  console.log("======================================step 1. ================================");
 
   const result = await chain
     .call({
@@ -131,7 +132,7 @@ export async function POST(req: Request) {
       recentChatHistory: recentChatHistory,
     })
     .catch(console.error);
-
+  console.log("======================================step 2. ================================");
   console.log("result", result);
   const chatHistoryRecord = await memoryManager.writeToHistory(result!.text + "\n", companionKey);
   console.log("chatHistoryRecord", chatHistoryRecord);

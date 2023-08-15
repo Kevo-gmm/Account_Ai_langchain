@@ -36,49 +36,51 @@ export default function QAModal({ open, setOpen, example }: { open: boolean; set
 
   // This useEffect hook sets up the media recorder when the component mounts
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      navigator.mediaDevices
-        .getUserMedia({ audio: true })
-        .then(stream => {
-          const newMediaRecorder = new MediaRecorder(stream);
-          newMediaRecorder.onstart = () => {
-            chunks = [];
-          };
-          newMediaRecorder.ondataavailable = e => {
-            chunks.push(e.data);
-          };
-          newMediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(chunks, { type: "audio/webm" });
-            try {
-              const reader = new FileReader();
-              reader.readAsDataURL(audioBlob);
-              reader.onloadend = async function () {
-                if (typeof reader.result !== "string") return;
-                const base64Audio = reader?.result?.split(",")[1]; // Remove the data URL prefix
-                const response = await fetch("/api/whisper", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ audio: base64Audio }),
-                });
-                const data = await response.json();
-                if (response.status !== 200) {
-                  throw data.error || new Error(`Request failed with status ${response.status}`);
-                }
-                setInput(data.result);
-                setResult(data.result);
-                const res = await complete(data.result);
-                console.log("=====================complete res========================");
-                console.log(res);
-              };
-            } catch (error) {
-              console.log("-----------------------an error occurred-----------------------------");
-              console.error(error);
-            }
-          };
-          setMediaRecorder(newMediaRecorder);
-        })
-        .catch(err => console.error("Error accessing microphone:", err));
-    }
+    (async () => {
+      if (typeof window !== "undefined") {
+        navigator.mediaDevices
+          .getUserMedia({ audio: true })
+          .then(stream => {
+            const newMediaRecorder = new MediaRecorder(stream);
+            newMediaRecorder.onstart = () => {
+              chunks = [];
+            };
+            newMediaRecorder.ondataavailable = e => {
+              chunks.push(e.data);
+            };
+            newMediaRecorder.onstop = async () => {
+              const audioBlob = new Blob(chunks, { type: "audio/webm" });
+              try {
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async function () {
+                  if (typeof reader.result !== "string") return;
+                  const base64Audio = reader?.result?.split(",")[1]; // Remove the data URL prefix
+                  const response = await fetch("/api/whisper", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ audio: base64Audio }),
+                  });
+                  const data = await response.json();
+                  if (response.status !== 200) {
+                    throw data.error || new Error(`Request failed with status ${response.status}`);
+                  }
+                  setInput(data.result);
+                  setResult(data.result);
+                  const res = await complete(data.result);
+                  console.log("=====================complete res========================");
+                  console.log(res);
+                };
+              } catch (error) {
+                console.log("-----------------------an error occurred-----------------------------");
+                console.error(error);
+              }
+            };
+            setMediaRecorder(newMediaRecorder);
+          })
+          .catch(err => console.error("Error accessing microphone:", err));
+      }
+    })();
   }, []);
   console.log("=================RESULT=========================");
   console.log(result);
